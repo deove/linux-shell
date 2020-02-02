@@ -1,0 +1,681 @@
+#!/bin/bash
+if test ! -d machine
+then
+    mkdir machine
+fi
+if [ $1 = "-connect" ]
+then
+    if test $# -ne 3
+    then
+        echo "On a besoin de plus parametre"
+        exit
+    fi
+    if test $# -eq 3
+    then
+        cd ./machine
+        if test -e $2
+        then
+            cd $2
+            if test -e $3
+            then
+                echo "Commencer a lancer reseau virtuel de machine linux"
+                echo "Password:"
+                cd $3
+                read password
+                if test "$password" = "$(cat password)"
+                then
+                    touch mesreminder
+                    s=$(grep -c "message" mesreminder)
+                    if test $s -ne 0 
+                    then
+                        echo "Vous avez recu un nouveau message"
+                    fi
+                    echo "Bienvenue"
+                    touch com_information
+                    touch recieve_mes
+                    touch information
+                    v_time=$(date "+%Y-%m-%d %H:%M")
+                    echo "$3 $2 $v_time"> information 
+                    cd ..
+                    cd ..
+                  while true
+                  do
+                    echo -e "$3@$2>\c"
+                    read -p "" cmd cmd2 cmd3
+	            if test ! -n "$cmd"
+                    then
+	                echo "1" > /dev/null
+#"who"
+	            elif [ $cmd = "who" ]
+                    then
+                            cd $2
+                            for d in `ls .`
+                            do
+                              cd $d
+                              grep "$d" information
+	                      cd ..
+                            done
+                            cd ..
+#"rusers"
+                    elif test $cmd = "rusers"
+                    then
+                        for d1 in `ls .`
+                        do
+                          cd $d1
+                          for d2 in `ls .`
+                          do
+                            cd $d2
+                            grep "$d2" information
+                            cd ..
+                          done
+                          cd ..
+                        done
+#"rhost"
+                    elif test $cmd = "rhost"
+                    then
+                        for d in `ls .`
+                        do
+                          echo "$d"
+                        done
+#"connect"
+                    elif test $cmd = "connect"
+                    then
+                        if test ! -n $cmd2
+                        then
+                            echo "Vous devez entrer une autre machine"
+                        else
+                            for d in `ls .`
+                            do
+                              if test $cmd2 = $d
+                              then
+                                  cd $cmd2
+                                  if test -e $3
+                                  then 
+		                      echo "Password: "
+		                      cd $3
+        	                      read password
+                                      if test "$password" = "$(cat password)"
+                                      then
+                                          touch mesreminder
+                                          s=$(grep -c "message" mesreminder)
+                                          if test $s -ne 0
+                                          then
+                                              echo "Vous avez recu un nouveau message"
+                                          fi
+                                          echo "Bienvenue"
+                                          touch com_information
+                                          touch recieve_mes
+                                          touch information
+                                          v_time=$(date "+%Y-%m-%d %H:%M")
+                                          echo "$3 $d $v_time"> information 
+                                          cd ..
+                                          cd ..
+                                      else
+                                          echo "Le mot de passe n'est pas correct" 
+                                      fi
+                                   fi
+                                fi
+                             done
+                         fi
+#"su"
+                    elif test $cmd = "su"
+                    then
+                        if test -e $cmd3
+                        then
+                            if test "$cmd2" = "root"
+                            then
+                                echo "L'authority n'est pas suiffisant"
+                            else
+                                cd $cmd3
+                                if test -e $cmd2
+                                then
+                                    echo -e "Password:\c"
+	                            cd $cmd2
+                                    read password
+                                    p=$(cat password)
+                                    if [ "$password" = "$p" ]
+                                    then
+                                        touch mesreminder
+                                        s=$(grep -c "message" mesreminder)
+                                        if test $s -ne 0
+                                        then
+                                            echo "Vous avez recu un nouveau message"
+                                        fi
+                                        touch com_information
+                                        touch recieve_mes
+                                        touch information
+                                        v_time=$(date "+%Y-%m-%d %H:%M")
+                                        echo "$cmd2 $cmd3 $v_time"> information
+                                        echo "Reussite"
+	                                cd ..
+                                        cd ..
+                                    else
+                                        echo "Password n'est pas correct"
+                                    fi
+	                        else
+                 	            echo "Il n'y a pas $cmd2"
+	                        fi
+                            fi
+                        else
+                            echo "Il n'y a pas $cmd3"
+                        fi
+#"passwd"
+                    elif test $cmd = "passwd"
+                    then
+                            if test "$cmd2" = "$3"
+                            then
+                                echo -e "Entrer current password:\c"
+                                read password
+                                cd $2/$3
+                                if test $password = $(cat password)
+                                then
+                                    echo -e "Entrer nouveau password:\c"
+                                    read password1
+                                    echo -e "Entrer encore une fois:\c"
+                                    read password2
+                                    if test $password1 = $password2
+                                    then
+                                        sed -i "s/.*/$password1/g" password
+                                        echo "Password est change"
+                                    else
+                                        echo "Le password n'est pas correct"
+                                    fi
+                                 else
+                                     echo "Le password n'est pas correct"
+                                 fi
+                                 cd ..
+                                 cd ..
+                             else
+                                 echo "Vous n'avez pas d'authority"
+                             fi 
+#"finger"
+                    elif test $cmd = "finger"
+                    then
+                        if test -n $cmd3
+                        then
+                            if test "$cmd2" != "root"
+                            then
+                                if test ! -n $cmd2
+                                then
+                                    echo "Vous devez entrer l'utilsateur"
+                                else
+                                    cd $cmd3
+                                    for u in `ls .`
+                                    do
+                                      if test $cmd2 = $u
+                                      then
+                                          cd $cmd2
+                                          grep "$cmd2" com_information
+                                          cd ..
+                                      fi
+                                    done
+                                    cd ..
+                                fi
+                            else
+                                cd admin
+                                cd root
+                                grep "root" information
+                                cd ..
+                                cd ..
+                            fi
+                        else
+                            echo "Vous devez entrer la machine"
+                        fi
+#"write"
+                    elif test $cmd = "write"
+                    then
+                        user=$(echo $cmd2|cut -d "@" -f 1)
+                        machine=$(echo $cmd2|cut -d "@" -f 2)
+                        if test $user = "root"
+                        then
+                            echo "C'est impossible"
+                        else
+                            cd $machine
+                            cd $user
+                            echo $cmd3 > recieve_mes
+                            echo "message" > mesreminder
+                            cd ..
+                            cd ..
+                        fi
+#"read"
+                    elif test $cmd = "read"
+                    then
+                        cd $2
+                        cd $3
+                        s=$(grep -c "message" mesreminder)
+                        if test $s -ne 0
+                        then
+                            grep ".*" recieve_mes
+                            sed -i "s/.*/ /g" mesreminder
+                            sed -i "s/.*/ /g" recieve_mes
+                        else
+                            echo "Il est vide"
+                        fi 
+                                                                                                
+#"help"
+	            elif test $cmd = "help"
+                    then
+	                echo "who : accéder à l’ensemble des utilisateurs connectés sur la machine"
+	                echo "rusers : accéder à la liste des utilisateurs connectés sur le réseau"
+	                echo "rhost : renvoyer la liste des machines rattachées au réseau virtuel"
+	                echo "connect : se connecter à une autre machine du réseau"
+	                echo "su user machine : changer d’utilisateur"
+                        echo "su root: pour devenir super utilisateur"
+	                echo "passwd user machine : changer de mot de passe d'un user sur l'ensemble du reseau virtuel"
+	                echo "finger : renvoyer des éléments complémentaires sur l’utilisateur"
+	                echo "write : envoyer un message à un utilisateur"
+                        echo "read : montrer le contenu de message"
+	                echo "exit : quitter le reseau virtuelle"
+#"exit"
+                    elif [ $cmd = "exit" ]
+                    then
+                        exit
+	            fi
+                 done
+                else
+                    echo "Le mot de passe n'est pas correct"
+                fi
+             fi
+        else
+            echo "$2 n'existe pas"
+            exit
+        fi
+    fi
+
+elif test $1 = "-admin"
+then
+    cd ./machine
+    if test ! -d admin
+    then
+        mkdir admin
+    fi
+    cd admin
+    if test ! -d root
+    then
+        mkdir root
+    fi
+    cd root
+    touch password
+    echo "admin" > password
+    echo "Commencer a lancer reseau virtuel de machine linux"
+    echo "Password:"
+    read password
+    if test "$password" = "$(cat password)"
+    then
+        touch information
+        v_time=$(date "+%Y-%m-%d %H:%M")
+        echo "root admin $v_time"> information
+        cd ..
+        cd ..
+        while true
+        do
+            echo -e "rvsh>\c"
+            read -p "" cmd cmd2 cmd3
+	    if test ! -n "$cmd"
+            then
+	            echo "1" > /dev/null
+#"who"
+	            elif [ $cmd = "who" ]
+                    then
+                            cd admin
+                            cd root
+                            grep "root" information
+                            cd ..
+#"rusers"
+                    elif test $cmd = "rusers"
+                    then
+                        for d1 in `ls .`
+                        do
+                          cd $d1
+                          for d2 in `ls .`
+                          do
+                            cd $d2
+                            grep "$d2" information
+                            cd ..
+                          done
+                          cd ..
+                        done
+#"rhost"
+                    elif test $cmd = "rhost"
+                    then
+                        for d in `ls .`
+                        do
+                          echo "$d"
+                        done
+#"connect"
+                    elif test $cmd = "connect"
+                    then
+                        if test ! -n $cmd2
+                        then
+                            echo "Vous devez entrer une autre machine"
+                        else
+                            for d in `ls .`
+                            do
+                              if test $cmd2 = $d
+                              then
+                                  cd $cmd2
+                                  if test -e root
+                                  then 
+		                      echo "Password: "
+		                      cd root
+        	                      read password
+                                      if test "$password" = "$(cat password)"
+                                      then
+                                          echo "Bienvenue"
+                                          touch information
+                                          v_time=$(date "+%Y-%m-%d %H:%M")
+                                          echo "root admin $v_time"> information 
+                                          cd ..
+                                          cd ..
+                                      else
+                                          echo "Le mot de passe n'est pas correct" 
+                                      fi
+                                   else
+                                       mkdir root
+                                       cd root
+                                       touch password
+                                       echo "admin" > password                                     
+                                       echo "Password:"
+        	                       read password
+                                       if test "$password" = "$(cat password)"
+                                       then
+                                          echo "Bienvenue"
+                                          touch information
+                                          v_time=$(date "+%Y-%m-%d %H:%M")
+                                          echo "root admin $v_time"> information 
+                                          cd ..
+                                          cd ..
+                                       else
+                                          echo "Le mot de passe n'est pas correct" 
+                                       fi
+                                    fi
+                                fi
+                             done
+                         fi
+#"su"
+                    elif test $cmd = "su"
+                    then
+                        if test -e $cmd3
+                        then
+                            if test "$cmd2" = "root"
+                            then
+                                echo "Ce n'est pas necessaire"
+                            else
+                                cd $cmd3
+                                if test -e $cmd2
+                                then
+	                            cd $cmd2
+                                    touch mesreminder
+                                    s=$(grep -c "message" mesreminder)
+                                    if test $s -ne 0
+                                    then
+                                            echo "Vous avez recu un nouveau message"
+                                    fi
+                                    touch com_information
+                                    touch recieve_mes
+                                    touch information
+                                    v_time=$(date "+%Y-%m-%d %H:%M")
+                                    echo "$cmd2 $cmd3 $v_time"> information
+                                    echo "Reussite"
+	                            cd ..
+                                    cd ..
+	                        else
+                 	            echo "Il n'y a pas $cmd2"
+	                        fi
+                            fi
+                        else
+                            echo "Il n'y a pas $cmd3"
+                        fi
+#"passwd"
+                    elif test $cmd = "passwd"
+                    then
+                        if test -e $cmd3
+                        then
+                            if test "$cmd2" = "root"
+                            then
+                                echo -e "Entrer current password:\c"
+                                read password
+                                cd admin/root
+                                if test $password = $(cat password)
+                                then
+                                    echo -e "Entrer nouveau password:\c"
+                                    read password1
+                                    echo -e "Entrer encore une fois:\c"
+                                    read password2
+                                    if test $password1 = $password2
+                                    then
+                                        sed -i "s/.*/$password1/g" password
+                                        echo "Password est change"
+                                    else
+                                        echo "Le password n'est pas correct"
+                                    fi
+                                 else
+                                     echo "Le password n'est pas correct"
+                                 fi
+                                 cd ..
+                                 cd ..
+                             else
+                                  cd $cmd3/$cmd2
+                                  echo -e "Entrer nouveau password:\c"
+                                  read password1
+                                  echo -e "Entrer encore une fois:\c"
+                                  read password2
+                                  if test $password1 = $password2
+                                  then
+                                         sed -i "s/.*/$password1/g" password
+                                         echo "Password est change"
+                                  else
+                                         echo "Le password n'est pas correct"
+                                  fi
+                                  cd ..
+                                  cd ..
+                              fi
+                           else
+                               echo "Il n'y a pas $cmd3"
+                           fi 
+#"finger"
+                    elif test $cmd = "finger"
+                    then
+                        if test -n $cmd3
+                        then
+                            if test "$cmd2" != "root"
+                            then
+                                if test ! -n $cmd2
+                                then
+                                    echo "Vous devez entrer l'utilsateur"
+                                else
+                                    cd $cmd3
+                                    for u in `ls .`
+                                    do
+                                      if test $cmd2 = $u
+                                      then
+                                          cd $cmd2
+                                          grep "$cmd2" com_information
+                                          cd ..
+                                      fi
+                                    done
+                                    cd ..
+                                fi
+                            else
+                                cd admin
+                                cd root
+                                grep "root" information
+                                cd ..
+                                cd ..
+                            fi
+                        else
+                            echo "Vous devez entrer la machine"
+                        fi
+#"write"
+                    elif test $cmd = "write"
+                    then
+                        user=$(echo $cmd2|cut -d "@" -f 1)
+                        machine=$(echo $cmd2|cut -d "@" -f 2)
+                        if test $user = "root"
+                        then
+                            echo "C'est impossible"
+                        else
+                            cd $machine
+                            cd $user
+                            echo $cmd3 > recieve_mes
+                            echo "message" > mesreminder
+                            cd ..
+                            cd ..
+                        fi
+#"host"
+            elif test $cmd = "host"
+            then
+                if test -n $cmd2
+                then
+                    if test -d $cmd2
+                    then
+                        echo "Vous voulez ajouter ou enlever cette machine"
+                        read choix
+                        if test $choix = "enlever"
+                        then
+                            rm -rf $cmd2
+                            echo "reussir a enlever"
+                        elif test $choix = "ajouter"
+                        then
+                            echo "$cmd2 deja existe"
+                        fi
+                    else
+                        echo "Vous voulez ajouter ou enlever cette machine"
+                        read choix
+                        if test $choix = "enlever"
+                        then
+                            echo "$cmd2 n'existe pas"
+                        elif test $choix = "ajouter"
+                        then
+                            mkdir $cmd2
+                            echo "reussir a ajouter"
+                        fi
+                    fi
+                else
+                    echo "On a besoin d'une machine"
+                fi
+#"users"
+         elif test $cmd = "users"
+         then
+             if test -n $cmd2
+             then
+                 echo "Vous voulez ajouter ou enlever cet utilisateur?"
+                 read choix
+                 if test $choix = "ajouter"
+                 then
+                     while true
+                     do
+                       echo "Au quelle machine?(exit pour quitter)"
+                       read m
+                       if test $m != "exit"
+                       then
+                             if test -d $m
+                             then
+                                 cd $m
+                                 if test -d $cmd2
+                                 then
+                                     echo "Cet utilisateur deja existe"
+                                     cd ..
+                                 else
+                                     mkdir $cmd2
+                                     cd $cmd2
+                                     if test $cmd2 = "root"
+                                     then
+                                         touch password
+                                         echo "admin" > password
+                                     else 
+                                         touch mesreminder
+                                         touch com_information
+                                         touch recieve_mes
+                                         echo "Fixer un password"
+                                         read password_cmd2
+                                         touch password
+                                         echo "$password_cmd2" > password
+                                     fi
+                                     cd ..
+                                     cd ..
+                                  fi
+                             else
+                                 echo "Il n'y a pas cette machine"
+                             fi
+                       else
+                           echo "Vous avez quitte"
+                           break
+                       fi
+                     done        
+                 elif test $choix = "enlever"
+                 then
+                     if test -d $cmd2
+                     then
+                         for d1 in `ls .`
+                         do
+                           cd $d1
+                           for d2 in `ls .`
+                           do
+                             if test $d2 = $cmd2
+                             then
+                                 rm -rf $cmd2
+                                 echo "Reussite"
+                             fi
+                           done
+                         done
+                     else
+                         echo "Cet utilisateur n'existe pas"
+                     fi
+                 else
+                     echo "Il n'y a pas ce choix"
+                 fi
+             else
+                 echo "Vous n'avez pas entre l'utilisateur"
+             fi    
+#"afinger"
+         elif test $cmd = "afinger"
+         then
+             x=1
+             if test -n $cmd2
+             then
+                 for d1 in `ls .`
+                 do
+                   cd $d1
+                   for d2 in `ls .`
+                   do
+                     if test $cmd2 = $d2
+                     then
+                         cd $d2
+                         i=$(grep "$cmd2" information)
+                         echo "Quelle est votre profession?"
+                         read a
+                         echo "Quelle est votre sexe?"
+                         read b
+                         echo "$i $b $a"> com_information
+                         echo "L'information de numero $x est complet"
+                         x=`expr $x + 1`
+                         cd ..
+                     fi
+                   done
+                   cd ..
+                 done
+             else
+                 echo "On a besoin de nom d'utilisateur"
+             fi
+#"help"
+         elif test $cmd = "help"
+         then
+             echo "host : ajouter ou enlever une machine au reseau virtuel"
+	     echo "users : ajouter ou enlever un utilisateur,de lui donner les droits d'acces a une ou plusieurs machines et de lui fixer un mot de passe"
+	     echo "afinger : renseigner les informations complementaire sur l'utilisateur"
+#"exit"
+         elif test $cmd = "exit"
+         then
+             rm -rf admin
+             exit
+         fi
+      
+      done
+    else
+        echo "Password n'est pas correct"
+    fi
+    cd ..
+fi
+
+    
